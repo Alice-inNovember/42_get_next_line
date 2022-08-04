@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/04 17:25:31 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/04 18:09:57 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ void	freelist(t_fdlist *fdlist)
 		free (fdlist->strlist);
 		fdlist->strlist = temp;
 	}
-	fdlist->index++;
+	fdlist->size = 0;
 }
 
 t_fdlist	*find_list(t_fdlist **fdlist, int fd)
@@ -136,9 +136,9 @@ char	*nextline(int fd, t_fdlist *fdlist)
 		{
 			if (fdlist->index == BUFFER_SIZE)
 				break ;
-			if (temp->buffer[fdlist->index] == '\n')
+			else if (temp->buffer[fdlist->index] == '\n')
 				return (cpystr(fdlist, fdlist->size + fdlist->index - start + 1, start));
-			if (fdlist->index == status)
+			else if (fdlist->index == status)
 				return (cpystr(fdlist, fdlist->size + fdlist->index - start, start));
 			fdlist->index++;
 		}
