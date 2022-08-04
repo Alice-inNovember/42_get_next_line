@@ -6,22 +6,14 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:58:22 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/01 16:13:07 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/04 14:50:48 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
 
-# define BUFFER_SIZE 100
-
-typedef struct s_fdlist
-{
-	int				fd;
-	char			buffer[BUFFER_SIZE];
-	int				index;
-	struct s_fdlist	*next;
-}	t_fdlist;
+# define BUFFER_SIZE 20
 
 typedef struct s_strlist
 {
@@ -29,5 +21,13 @@ typedef struct s_strlist
 	struct s_strlist	*next;
 }	t_strlist;
 
+typedef struct s_fdlist
+{
+	int				fd;
+	size_t			index;
+	size_t			size;
+	t_strlist		*strlist;
+	struct s_fdlist	*next;
+}	t_fdlist;
 
 #endif
