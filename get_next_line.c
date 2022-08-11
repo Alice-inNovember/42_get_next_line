@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/11 15:30:25 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/11 16:43:04 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,9 +69,28 @@ int	readfd(int fd, t_fdlist *workbench, char *buffer)
 	return (0);
 }
 
-char	*returnstr(t_fdlist *workbench, int readcnt, size_t startindex, int op)
+char	*returnstr(t_fdlist *workbench, int readcnt, size_t startindex)
 {
-	return ((void *)0);
+	size_t		totallen;
+	char		*returns;
+	t_fdlist	*strlist;
+	size_t		i;
+
+	if (readcnt == 0)
+		totallen = workbench->index - startindex + 1;
+	else
+		totallen = ((BUFFER_SIZE * (readcnt + 1)) - (startindex + 1)) + workbench->index + 1;
+	returns = malloc(totallen + 1);
+	if (!returns)
+		return ((void *)0);
+	strlist = workbench->strlist;
+	i = 0;
+	while (/* condition */)
+	{
+		/* code */
+	}
+	
+	return (returns);
 }
 
 char	*nextline(int fd, t_fdlist *workbench)
@@ -86,13 +105,12 @@ char	*nextline(int fd, t_fdlist *workbench)
 			return ((void *)0);
 	while (workbench->status != 0 && workbench->status != -1)
 	{
-		startindex = workbench->index;
 		while (workbench->index < BUFFER_SIZE)
 		{
 			if (buffer[workbench->index] == '\n')
-				return (returnstr(workbench, readcnt, startindex, 1));
+				return (returnstr(workbench, readcnt, startindex));
 			else if (workbench->index == workbench->status)
-				return (returnstr(workbench, readcnt, startindex, 0));
+				return (returnstr(workbench, readcnt, startindex));
 			workbench->index += 1;
 		}
 		if (readfd(fd, workbench, buffer) == -1)
