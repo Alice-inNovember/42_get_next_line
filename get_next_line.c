@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/11 16:43:04 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/11 16:48:59 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,6 @@ char	*returnstr(t_fdlist *workbench, int readcnt, size_t startindex)
 	{
 		/* code */
 	}
-	
 	return (returns);
 }
 
