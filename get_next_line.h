@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:58:22 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/11 16:26:54 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/12 16:25:57 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,10 @@ typedef struct s_strlist
 typedef struct s_fdlist
 {
 	int				fd;
-	size_t			index;
-	size_t			status;
+	ssize_t			index;
+	ssize_t			status;
 	t_strlist		*strlist;
+	struct s_fdlist	*prev;
 	struct s_fdlist	*next;
 }	t_fdlist;
 

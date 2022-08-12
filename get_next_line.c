@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/11 16:48:59 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/12 16:25:15 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,127 +17,172 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-t_fdlist	*find_list(t_fdlist **fdlist, int fd)
+t_fdlist	*find_fd(int fd, t_fdlist *fdlist)
 {
-	t_fdlist	temp;
-	t_fdlist	*find;
-	t_fdlist	*pre;
+	t_fdlist	*origin;
+	t_fdlist	*returnfd;
 
-	temp.fd = -1;
-	temp.next = *fdlist;
-	find = &temp;
-	while (find != 0)
+	origin = fdlist;
+	while (fdlist)
 	{
-		if (find->fd == fd)
-			return (find);
-		pre = find;
-		find = find->next;
+		if (fdlist->fd == fd)
+			return (fdlist);
+		fdlist = fdlist->next;
 	}
-	find = (t_fdlist *)malloc(sizeof(t_fdlist));
-	pre->next = find;
-	if (!find)
-		return ((void *)0);
-	find->fd = -1;
-	find->index = 0;
-	find->next = 0;
-	find->strlist = 0;
-	return (find);
+	returnfd = (t_fdlist *)malloc(sizeof(t_fdlist));
+	if (!returnfd)
+		return (0);
+	returnfd->fd = -1;
+	returnfd->index = 0;
+	returnfd->next = origin;
+	if (origin)
+		origin->prev = returnfd;
+	returnfd->prev = 0;
+	returnfd->status = 0;
+	returnfd->strlist = 0;
+	return (returnfd);
 }
 
-int	readfd(int fd, t_fdlist *workbench, char *buffer)
+t_strlist	*find_last_buffer(t_fdlist *fdstruct)
 {
-	t_strlist	temp;
-	t_strlist	*find;
-	t_strlist	*pre;
+	t_strlist	*temp;
 
-	temp.next = workbench->strlist;
-	find = &temp;
-	while (find != 0)
+	temp = fdstruct->strlist;
+	while (temp->next)
+		temp = temp->next;
+	return (temp);
+}
+
+t_strlist	*free_strlist(t_fdlist *fdstruct, int option)
+{
+	t_strlist	*temp;
+
+	if (option == 'a')
 	{
-		pre = find;
-		find = find->next;
-	}
-	find = (t_fdlist *)malloc(sizeof(t_fdlist));
-	pre->next = find;
-	if (!find)
+
+	};
+	// {
+	// 	while (!fdstruct->strlist)
+	// 	{
+	// 		temp = fdstruct->strlist->next;
+	// 		free(fdstruct->strlist);
+	// 		fdstruct->strlist = temp;
+	// 	}
+	// 	if (fdstruct->prev)
+	// 		fdstruct->prev->next = fdstruct->next;
+	// 	if (fdstruct->next)
+	// 		fdstruct->next->prev = fdstruct->prev;
+	// 	free(fdstruct);
+	// 	return (0);
+	// }
+	while (fdstruct->strlist->next)
 	{
-		free_strlist();
-		return (-1);
+		temp = fdstruct->strlist->next;
+		free (fdstruct->strlist);
+		fdstruct->strlist = temp;
 	}
-	workbench->status = read(fd, find->buffer, BUFFER_SIZE);
-	buffer = find->buffer;
 	return (0);
 }
 
-char	*returnstr(t_fdlist *workbench, int readcnt, size_t startindex)
+t_strlist	*read_fd(int fd, t_fdlist *fdstruct, ssize_t *read_cnt)
 {
-	size_t		totallen;
-	char		*returns;
-	t_fdlist	*strlist;
-	size_t		i;
+	t_strlist	*temp;
 
-	if (readcnt == 0)
-		totallen = workbench->index - startindex + 1;
-	else
-		totallen = ((BUFFER_SIZE * (readcnt + 1)) - (startindex + 1)) + workbench->index + 1;
-	returns = malloc(totallen + 1);
-	if (!returns)
-		return ((void *)0);
-	strlist = workbench->strlist;
-	i = 0;
-	while (/* condition */)
+	if (fdstruct->fd == -1)
 	{
-		/* code */
+		fdstruct->strlist = (t_strlist *)malloc(sizeof(t_strlist));
+		if (!fdstruct->strlist)
+			return (free_strlist(fdstruct, 'a'));
+		fdstruct->status = read(fd, fdstruct->strlist->buffer, BUFFER_SIZE);
+		if (fdstruct->status <= 0)
+			return (free_strlist(fdstruct, 'a'));
+		fdstruct->fd = fd;
+		return (fdstruct->strlist);
 	}
+	*read_cnt += 1;
+	temp = fdstruct->strlist;
+	while (temp->next)
+		temp = temp->next;
+	temp->next = (t_strlist *)malloc(sizeof(t_strlist));
+	if (!temp->next)
+		return (free_strlist(fdstruct, 'a'));
+	fdstruct->status = read(fd, temp->next, BUFFER_SIZE);
+	if (fdstruct->status <= 0)
+		return (free_strlist(fdstruct, 'a'));
+	return (temp->next);
+}
+
+char	*returnstr(t_fdlist *fdstruct, ssize_t start_i, ssize_t read_cnt)
+{
+	char		*returns;
+	ssize_t		total_len;
+	ssize_t		i;
+	t_strlist	*buffer_list;
+
+	total_len = (BUFFER_SIZE * (read_cnt - 1)) - start_i + fdstruct->index + 1;
+	returns = (char *)malloc(total_len + 1);
+	if (!returns)
+		return (0);
+	i = 0;
+	buffer_list = fdstruct->strlist;
+	while (i < total_len)
+	{
+		returns[i] = buffer_list->buffer[(start_i + i) % BUFFER_SIZE];
+		i++;
+		if ((start_i + i) % BUFFER_SIZE == 0)
+			buffer_list = buffer_list->next;
+	}
+	returns[i] = 0;
+	free_strlist(fdstruct, 'l');
+	fdstruct->index += 1;
 	return (returns);
 }
 
-char	*nextline(int fd, t_fdlist *workbench)
+char	*get_line(int fd, t_fdlist *fdstruct)
 {
-	int		readcnt;
-	size_t	startindex;
-	char	*buffer;
+	ssize_t		start_i;
+	ssize_t		read_cnt;
+	t_strlist	*current_buffer;
 
-	readcnt = 0;
-	if (workbench->fd == -1)
-		if (readfd(fd, workbench, buffer) == -1)
-			return ((void *)0);
-	while (workbench->status != 0 && workbench->status != -1)
+	start_i = fdstruct->index;
+	read_cnt = 1;
+	while (1)
 	{
-		while (workbench->index < BUFFER_SIZE)
+		if (fdstruct->index % BUFFER_SIZE == 0)
 		{
-			if (buffer[workbench->index] == '\n')
-				return (returnstr(workbench, readcnt, startindex));
-			else if (workbench->index == workbench->status)
-				return (returnstr(workbench, readcnt, startindex));
-			workbench->index += 1;
+			read_fd(fd, fdstruct, &read_cnt);
+			fdstruct->index = 0;
 		}
-		if (readfd(fd, workbench, buffer) == -1)
-			return ((void *)0);
-		workbench->index = 0;
+		current_buffer = find_last_buffer(fdstruct);
+		if (!current_buffer)
+			return (0);
+		while (fdstruct->index < BUFFER_SIZE)
+		{
+			if (current_buffer->buffer[fdstruct->index] == '\n')
+				return (returnstr(fdstruct, start_i, read_cnt));
+			else if (fdstruct->index + 1 == fdstruct->status)
+				return (returnstr(fdstruct, start_i, read_cnt));
+			fdstruct->index++;
+		}
 	}
-	return ((void *)0);
 }
 
 char	*get_next_line(int fd)
 {
 	static t_fdlist	*fdlist = 0;
-	t_fdlist		*workbench;
 
 	if (fd < 0)
-		return ((void *)0);
-	workbench = find_list(&fdlist, fd);
-	if (!workbench)
-		return ((void *)0);
-	return (nextline(fd, workbench));
+		return (0);
+	fdlist = find_fd(fd, fdlist);
+	if (!fdlist)
+		return (0);
+	return (get_line(fd, fdlist));
 }
 
 int	main(void)
 {
-	char	a[BUFFER_SIZE];
 	int		fd;
 
 	fd = open("a.txt", O_RDONLY);
-	while (printf("%s", get_next_line(fd)) != 6)
-		printf("\n");
+	while (printf("%s", get_next_line(fd)) != 6);
 }
