@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:58:22 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/12 16:25:57 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/17 13:16:35 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define GET_NEXT_LINE_H
 
 # define BUFFER_SIZE 10
+# define BFSIZE BUFFER_SIZE
 
 typedef struct s_strlist
 {
