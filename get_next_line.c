@@ -6,12 +6,10 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/17 14:52:43 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/23 15:01:12 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
-#include <unistd.h>
 #include "get_next_line.h"
 
 #include <fcntl.h>
@@ -19,142 +17,112 @@
 
 t_fdlist	*find_fd(int fd, t_fdlist *fdlist)
 {
-	t_fdlist	*origin;
-	t_fdlist	*returnfd;
+	t_fdlist	*fdnode;
 
-	origin = fdlist;
-	while (fdlist)
+	fdnode = fdlist;
+	while (fdnode->next != 0)
 	{
-		if (fdlist->fd == fd)
-			return (fdlist);
-		fdlist = fdlist->next;
+		if (fdnode->fd == fd)
+			return (fdnode);
+		fdnode = fdnode->next;
 	}
-	returnfd = (t_fdlist *)malloc(sizeof(t_fdlist));
-	if (!returnfd)
+	fdnode->next = (t_fdlist *)malloc(sizeof(t_fdlist));
+	if (!fdnode->next)
 		return (0);
-	returnfd->fd = -1;
-	returnfd->index = 0;
-	returnfd->next = origin;
-	if (origin)
-		origin->prev = returnfd;
-	returnfd->prev = 0;
-	returnfd->status = 0;
-	returnfd->strlist = 0;
-	return (returnfd);
+	fdnode->next->fd = fd;
+	fdnode->next->totallen = 0;
+	fdnode->next->s_idx = -1;
+	fdnode->next->next = 0;
+	fdnode->next->prev = fdnode;
+	return (fdnode->next);
 }
 
-t_strlist	*find_last_buffer(t_fdlist *fdstruct)
+void	buffer_init(t_fdlist *fdlist, t_buffer *buff, ssize_t stack)
 {
-	t_strlist	*temp;
+	ssize_t	i;
 
-	temp = fdstruct->strlist;
-	while (temp->next)
-		temp = temp->next;
-	return (temp);
-}
-
-ssize_t	strlist_init(int fd, t_fdlist *fdlist)
-{
-	if (fdlist->fd != -1)
-		return (fdlist->status);
-	fdlist->strlist = (t_strlist *)malloc(sizeof(t_strlist));
-	if (!fdlist->strlist)
-		return (-1);
-	fdlist->fd = fd;
-	fdlist->status = read(fd, fdlist->strlist->buffer, BFSIZE);
-	fdlist->strlist->next = 0;
-	return (fdlist->status);
-}
-
-ssize_t	strlist_read(t_fdlist *fdlist, t_strlist *buffer, ssize_t *readcnt)
-{
-	buffer->next = (t_strlist *)malloc(sizeof(t_strlist));
-	if (!fdlist->strlist)
-		return (-1);
-	fdlist->status = read(fdlist->fd, buffer->next->buffer, BFSIZE);
-	buffer->next->next = 0;
-	*readcnt += 1;
-	return (fdlist->status);
-}
-
-char	*make_str(t_fdlist *fdlist, ssize_t s_idx, ssize_t readcnt, int option)
-{
-	char		*returns;
-	t_strlist	*strlist;
-	ssize_t		totallen;
-	ssize_t		i;
-	ssize_t		j;
-
-	fdlist->index++;
-	if (fdlist->index + 1 == BFSIZE)
-	{
-		fdlist->index = 0;
-		strlist_read(fdlist, find_last_buffer(fdlist), &readcnt);
-	}
-	totallen = (BFSIZE - s_idx) + (BFSIZE * readcnt) - (BFSIZE - fdlist->index);
-	returns = (char *)malloc(totallen + 1);
 	i = 0;
-	strlist = fdlist->strlist;
-	while (i < totallen)
+	while (i < BUFFER_SIZE)
 	{
-		j = s_idx;
-		while (j < BUFFER_SIZE && i < totallen)
-		{
-			returns[i] = strlist->buffer[j];
-			i++;
-			j++;
-		}
-		strlist = strlist->next;
+		buff->buffer[i] = fdlist->buffer[i];
+		i++;
 	}
-	returns[i] = 0;
-	fdlist->strlist = find_last_buffer(fdlist);
-	return (returns);
+	buff->stack = stack;
+	buff->idx = fdlist->s_idx;
+	buff->s_idx = fdlist->s_idx;
+	buff->l_idx = fdlist->l_idx;
 }
 
-char	*next_line(int fd, t_fdlist *fdlist)
+void	cpybuffer(t_buffer buff, char *returnstr, ssize_t e_idx, char option)
 {
-	ssize_t		status;
-	ssize_t		st_idx;
-	ssize_t		readcnt;
-	t_strlist	*currunt_buff;
+	ssize_t	idx;
 
-	status = strlist_init(fd, fdlist);
-	st_idx = fdlist->index;
-	readcnt = 0;
-	while (1)
+	if (!returnstr)
+		return ;
+	idx = buff.s_idx;
+	while (buff.idx <= e_idx)
 	{
-		currunt_buff = find_last_buffer(fdlist);
-		if (status == 0)
-			return (make_str(fdlist, st_idx, readcnt, 'E'));
-		while (fdlist->index + 1 <= status)
-		{
-			if (currunt_buff->buffer[fdlist->index] == '\n')
-				return (make_str(fdlist, st_idx, readcnt, 'N'));
-			fdlist->index++;
-			//ssize_t	debug = fdlist->index;
-		}
-		if (fdlist->index + 1 == BFSIZE)
-			fdlist->index = 0;
-		status = strlist_read(fdlist, currunt_buff, &readcnt);
+		returnstr[buff.idx + buff.stack * BUFFER_SIZE] = buff.buffer[buff.idx];
+		buff.idx++;
 	}
+	if (option == 'Y')
+		returnstr[buff.idx + buff.stack * BUFFER_SIZE] = 0;
+}
+
+char	*get_line(t_fdlist *fdlist, ssize_t stack)
+{
+	t_buffer	buff;
+	char		*returnstr;
+	
+	buffer_init(fdlist, &buff, stack);
+	while (buff.idx < buff.l_idx)
+	{
+		fdlist->totallen++;
+		if (buff.buffer[buff.idx] == '\n')
+		{
+			returnstr = (char *)malloc(fdlist->totallen + 1);
+			cpybuffer(buff, returnstr, buff.idx, 'Y');
+			return (returnstr);
+		}
+		buff.idx++;
+	}
+	fdlist->s_idx = 0;
+	fdlist->l_idx = read(fdlist->fd, fdlist->buffer, BUFFER_SIZE);
+	returnstr = get_line(fdlist, stack + 1);
+	cpybuffer(buff, returnstr, buff.idx, 'Y');
+	return (returnstr);
 }
 
 char	*get_next_line(int fd)
 {
-	static t_fdlist	*fdlist = 0;
+	static t_fdlist	*fdhead = 0;
+	static t_fdlist	*workbench;
 
-	if (fd < 0)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (0);
-	fdlist = find_fd(fd, fdlist);
-	if (!fdlist)
+	if (!fdhead)
+	{
+		fdhead = (t_fdlist *)malloc(sizeof(t_fdlist));
+		if (!fdhead)
+			return (0);
+		fdhead->fd = -1;
+		fdhead->next = 0;
+	}
+	workbench = find_fd(fd, fdhead);
+	if (!workbench)
 		return (0);
-	return (next_line(fd, fdlist));
+	workbench->s_idx = 0;
+	workbench->l_idx = read(workbench->fd, workbench->buffer, BUFFER_SIZE);
+	return (get_line(workbench, 0));
 }
 
 int	main(void)
 {
 	int		fd;
+	char	*debugstr;
 
 	fd = open("a.txt", O_RDONLY);
-	while (printf("%s", get_next_line(fd)) != 6);
+	debugstr = get_next_line(fd);
+	printf("%s", debugstr);
+	//while (printf("%s", get_next_line(fd)) != 6){}
 }

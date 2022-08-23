@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:58:22 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/17 13:16:35 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/23 15:01:13 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,20 +16,30 @@
 # define BUFFER_SIZE 10
 # define BFSIZE BUFFER_SIZE
 
-typedef struct s_strlist
-{
-	char				buffer[BUFFER_SIZE];
-	struct s_strlist	*next;
-}	t_strlist;
+# include <stdlib.h>
+# include <unistd.h>
 
 typedef struct s_fdlist
 {
 	int				fd;
-	ssize_t			index;
-	ssize_t			status;
-	t_strlist		*strlist;
-	struct s_fdlist	*prev;
+	char			buffer[BUFFER_SIZE];
+	ssize_t			totallen;
+	ssize_t			s_idx;
+	ssize_t			l_idx;
 	struct s_fdlist	*next;
+	struct s_fdlist	*prev;
 }	t_fdlist;
+
+typedef struct s_buffer
+{
+	char	buffer[BUFFER_SIZE];
+	ssize_t	stack;
+	ssize_t	idx;
+	ssize_t	s_idx;
+	ssize_t	l_idx;
+}	t_buffer;
+
+
+t_fdlist	*find_fd(int fd, t_fdlist *fdlist);
 
 #endif
