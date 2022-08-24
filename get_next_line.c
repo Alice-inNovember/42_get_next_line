@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/23 15:01:12 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/24 15:53:54 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,82 +22,83 @@ t_fdlist	*find_fd(int fd, t_fdlist *fdlist)
 	fdnode = fdlist;
 	while (fdnode->next != 0)
 	{
-		if (fdnode->fd == fd)
-			return (fdnode);
+		if (fdnode->next->fd == fd)
+			return (fdnode->next);
 		fdnode = fdnode->next;
 	}
 	fdnode->next = (t_fdlist *)malloc(sizeof(t_fdlist));
 	if (!fdnode->next)
 		return (0);
 	fdnode->next->fd = fd;
-	fdnode->next->totallen = 0;
 	fdnode->next->s_idx = -1;
 	fdnode->next->next = 0;
 	fdnode->next->prev = fdnode;
 	return (fdnode->next);
 }
 
-void	buffer_init(t_fdlist *fdlist, t_buffer *buff, ssize_t stack)
-{
-	ssize_t	i;
-
-	i = 0;
-	while (i < BUFFER_SIZE)
-	{
-		buff->buffer[i] = fdlist->buffer[i];
-		i++;
-	}
-	buff->stack = stack;
-	buff->idx = fdlist->s_idx;
-	buff->s_idx = fdlist->s_idx;
-	buff->l_idx = fdlist->l_idx;
-}
-
-void	cpybuffer(t_buffer buff, char *returnstr, ssize_t e_idx, char option)
+void	return_buffer(t_fdlist buff, char *returnstr, ssize_t max_idx, int op)
 {
 	ssize_t	idx;
 
 	if (!returnstr)
 		return ;
 	idx = buff.s_idx;
-	while (buff.idx <= e_idx)
+	while (idx < max_idx)
 	{
-		returnstr[buff.idx + buff.stack * BUFFER_SIZE] = buff.buffer[buff.idx];
-		buff.idx++;
+		returnstr[buff.stack * BUFFER_SIZE + idx - buff.indent] = buff.buffer[idx];
+		idx++;
 	}
-	if (option == 'Y')
-		returnstr[buff.idx + buff.stack * BUFFER_SIZE] = 0;
+	if (op == 'Y')
+		returnstr[buff.stack * BUFFER_SIZE + idx - buff.indent] = 0;
 }
 
-char	*get_line(t_fdlist *fdlist, ssize_t stack)
+char	*get_line_re(t_fdlist	*fdlist)
 {
-	t_buffer	buff;
 	char		*returnstr;
-	
-	buffer_init(fdlist, &buff, stack);
-	while (buff.idx < buff.l_idx)
+	t_fdlist	buff;
+
+	ft_memcpy(&buff, fdlist, sizeof(t_fdlist));
+	fdlist->c_idx = fdlist->s_idx;
+	while (buff.c_idx < buff.e_idx)
 	{
 		fdlist->totallen++;
-		if (buff.buffer[buff.idx] == '\n')
+		if (buff.buffer[buff.c_idx] == '\n')
 		{
 			returnstr = (char *)malloc(fdlist->totallen + 1);
-			cpybuffer(buff, returnstr, buff.idx, 'Y');
+			fdlist->s_idx = buff.c_idx + 1;
+			return_buffer(buff, returnstr, buff.c_idx + 1, 'Y');
 			return (returnstr);
 		}
-		buff.idx++;
+		buff.c_idx++;
 	}
 	fdlist->s_idx = 0;
-	fdlist->l_idx = read(fdlist->fd, fdlist->buffer, BUFFER_SIZE);
-	returnstr = get_line(fdlist, stack + 1);
-	cpybuffer(buff, returnstr, buff.idx, 'Y');
+	fdlist->e_idx = read(fdlist->fd, fdlist->buffer, BUFFER_SIZE);
+	fdlist->stack++;
+	returnstr = get_line_re(fdlist);
+	return_buffer(buff, returnstr, buff.c_idx, 'N');
 	return (returnstr);
+}
+
+char	*line_manager(t_fdlist	*fdlist)
+{
+	fdlist->totallen = 0;
+	if (fdlist->s_idx == -1)
+	{
+		fdlist->e_idx = read(fdlist->fd, fdlist->buffer, BUFFER_SIZE);
+		if (fdlist->e_idx == -1)
+			return (0);
+		fdlist->s_idx = 0;
+	}
+	fdlist->indent = fdlist->s_idx;
+	fdlist->stack = 0;
+	return (get_line_re(fdlist));
 }
 
 char	*get_next_line(int fd)
 {
 	static t_fdlist	*fdhead = 0;
-	static t_fdlist	*workbench;
-
+	t_fdlist		*workbench;
+	
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (0);
 	if (!fdhead)
@@ -111,18 +112,24 @@ char	*get_next_line(int fd)
 	workbench = find_fd(fd, fdhead);
 	if (!workbench)
 		return (0);
-	workbench->s_idx = 0;
-	workbench->l_idx = read(workbench->fd, workbench->buffer, BUFFER_SIZE);
-	return (get_line(workbench, 0));
+	return (line_manager(workbench));
 }
 
 int	main(void)
 {
-	int		fd;
-	char	*debugstr;
+    int		fd;
+	char	**debugstr;
 
 	fd = open("a.txt", O_RDONLY);
-	debugstr = get_next_line(fd);
-	printf("%s", debugstr);
+	debugstr = malloc(sizeof(char *) * 100);
+    int i = 0;
+	while (i < 100)
+	{
+	    printf("%d : |", i);
+	    debugstr[i] = get_next_line(fd);
+	    printf("%s", debugstr[i]);
+	    i++;
+	}
+	return (0);
 	//while (printf("%s", get_next_line(fd)) != 6){}
 }
