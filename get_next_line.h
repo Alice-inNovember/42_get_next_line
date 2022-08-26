@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:58:22 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/26 10:24:42 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/26 10:46:24 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ typedef struct s_fdlist
 	struct s_fdlist	*prev;
 }	t_fdlist;
 
+char	*get_next_line(int fd);
 void	*ft_memcpy(void *dst, const void *src, size_t n);
 
 #endif
