@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/26 10:44:10 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/26 11:20:49 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,13 +52,14 @@ void	return_buffer(t_fdlist buff, char *returnstr, ssize_t max_idx, int op)
 		returnstr[buff.stack * BUFFER_SIZE + idx - buff.indent] = 0;
 }
 
-// char	*free_fdlist(t_fdlist *fdlist)
-// {
-// 	fdlist->prev->next = fdlist->next;
-// 	fdlist->next->prev = fdlist->prev;
-// 	free(fdlist);
-// 	return (0);
-// }
+char	*free_fdlist(t_fdlist *fdlist)
+{
+	fdlist->prev->next = fdlist->next;
+	if (fdlist->next)
+		fdlist->next->prev = fdlist->prev;
+	free(fdlist);
+	return (0);
+}
 
 char	*get_line_re(t_fdlist	*fdlist)
 {
@@ -70,7 +71,7 @@ char	*get_line_re(t_fdlist	*fdlist)
 	while (buff.c_idx < BUFFER_SIZE)
 	{
 		fdlist->totallen++;
-		if (buff.buffer[buff.c_idx] == '\n'/* || (buff.c_idx == buff.status - 1 && buff.status != BUFFER_SIZE)*/)
+		if (buff.buffer[buff.c_idx] == '\n' || (buff.c_idx == buff.status - 1 && buff.status != BUFFER_SIZE))
 		{
 			returnstr = (char *)malloc(fdlist->totallen + 1);
 			fdlist->s_idx = buff.c_idx + 1;
@@ -82,7 +83,17 @@ char	*get_line_re(t_fdlist	*fdlist)
 	fdlist->s_idx = 0;
 	fdlist->status = read(fdlist->fd, fdlist->buffer, BUFFER_SIZE);
 	if (fdlist->status == 0 || fdlist->status == -1)
-		return (0/*free_fdlist(fdlist)*/);
+	{
+		if (fdlist->totallen > 0)
+		{
+			returnstr = (char *)malloc(fdlist->totallen + 1);
+			fdlist->s_idx = buff.c_idx + 1;
+			return_buffer(buff, returnstr, buff.c_idx + 1, 'Y');
+			return (free_fdlist(fdlist));
+			return (returnstr);
+		}
+		return (free_fdlist(fdlist));
+	}
 	fdlist->stack++;
 	returnstr = get_line_re(fdlist);
 	return_buffer(buff, returnstr, buff.c_idx, 'N');
@@ -95,8 +106,8 @@ char	*line_manager(t_fdlist	*fdlist)
 	if (fdlist->s_idx == -1)
 	{
 		fdlist->status = read(fdlist->fd, fdlist->buffer, BUFFER_SIZE);
-		if (fdlist->status == -1)
-			return (0);
+		if (fdlist->status == 0 || fdlist->status == -1)
+			return (free_fdlist(fdlist));
 		fdlist->s_idx = 0;
 	}
 	fdlist->indent = fdlist->s_idx;
@@ -126,21 +137,21 @@ char	*get_next_line(int fd)
 	return (line_manager(workbench));
 }
 
-// int	main(void)
-// {
-//     int		fd;
-// 	char	**debugstr;
+int	main(void)
+{
+    int		fd;
+	char	**debugstr;
 
-// 	fd = open("a.txt", O_RDONLY);
-// 	debugstr = malloc(sizeof(char *) * 100);
-//     int i = 0;
-// 	while (i < 100)
-// 	{
-// 	    printf("%d : |", i);
-// 	    debugstr[i] = get_next_line(fd);
-// 	    printf("%s", debugstr[i]);
-// 	    i++;
-// 	}
-// 	return (0);
-// 	//while (printf("%s", get_next_line(fd)) != 6){}
-// }
+	fd = open("a.txt", O_RDONLY);
+	debugstr = malloc(sizeof(char *) * 100);
+    int i = 0;
+	while (i < 100)
+	{
+	    printf("%d : |", i);
+	    debugstr[i] = get_next_line(fd);
+	    printf("%s", debugstr[i]);
+	    i++;
+	}
+	return (0);
+	//while (printf("%s", get_next_line(fd)) != 6){}
+}

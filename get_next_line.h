@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:58:22 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/26 10:46:24 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/26 11:20:50 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 # define GET_NEXT_LINE_H
 
 # define BUFFER_SIZE 10
-# define BFSIZE BUFFER_SIZE
 
 # include <stdlib.h>
 # include <unistd.h>
