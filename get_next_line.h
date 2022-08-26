@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:58:22 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/24 15:53:56 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/26 10:24:42 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ typedef struct s_fdlist
 	ssize_t			stack;
 	ssize_t			s_idx;
 	ssize_t			c_idx;
-	ssize_t			e_idx;
+	ssize_t			status;
 	ssize_t			indent;
 	struct s_fdlist	*next;
 	struct s_fdlist	*prev;
