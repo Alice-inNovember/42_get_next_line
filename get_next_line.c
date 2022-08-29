@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/26 11:20:49 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/29 09:01:17 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,26 +39,19 @@ t_fdlist	*find_fd(int fd, t_fdlist *fdlist)
 void	return_buffer(t_fdlist buff, char *returnstr, ssize_t max_idx, int op)
 {
 	ssize_t	idx;
+	ssize_t	bsize;
 
 	if (!returnstr)
 		return ;
+	bsize = BUFFER_SIZE;
 	idx = buff.s_idx;
 	while (idx < max_idx)
 	{
-		returnstr[buff.stack * BUFFER_SIZE + idx - buff.indent] = buff.buffer[idx];
+		returnstr[buff.stack * bsize + idx - buff.indent] = buff.buffer[idx];
 		idx++;
 	}
 	if (op == 'Y')
-		returnstr[buff.stack * BUFFER_SIZE + idx - buff.indent] = 0;
-}
-
-char	*free_fdlist(t_fdlist *fdlist)
-{
-	fdlist->prev->next = fdlist->next;
-	if (fdlist->next)
-		fdlist->next->prev = fdlist->prev;
-	free(fdlist);
-	return (0);
+		returnstr[buff.stack * bsize + idx - buff.indent] = 0;
 }
 
 char	*get_line_re(t_fdlist	*fdlist)
@@ -67,33 +60,21 @@ char	*get_line_re(t_fdlist	*fdlist)
 	t_fdlist	buff;
 
 	ft_memcpy(&buff, fdlist, sizeof(t_fdlist));
-	fdlist->c_idx = fdlist->s_idx;
-	while (buff.c_idx < BUFFER_SIZE)
+	while (buff.c_idx < buff.status)
 	{
 		fdlist->totallen++;
-		if (buff.buffer[buff.c_idx] == '\n' || (buff.c_idx == buff.status - 1 && buff.status != BUFFER_SIZE))
+		if (buff.buffer[buff.c_idx] == '\n')
 		{
 			returnstr = (char *)malloc(fdlist->totallen + 1);
-			fdlist->s_idx = buff.c_idx + 1;
 			return_buffer(buff, returnstr, buff.c_idx + 1, 'Y');
+			fdlist->s_idx = buff.c_idx + 1;
 			return (returnstr);
 		}
 		buff.c_idx++;
 	}
 	fdlist->s_idx = 0;
+	fdlist->c_idx = 0;
 	fdlist->status = read(fdlist->fd, fdlist->buffer, BUFFER_SIZE);
-	if (fdlist->status == 0 || fdlist->status == -1)
-	{
-		if (fdlist->totallen > 0)
-		{
-			returnstr = (char *)malloc(fdlist->totallen + 1);
-			fdlist->s_idx = buff.c_idx + 1;
-			return_buffer(buff, returnstr, buff.c_idx + 1, 'Y');
-			return (free_fdlist(fdlist));
-			return (returnstr);
-		}
-		return (free_fdlist(fdlist));
-	}
 	fdlist->stack++;
 	returnstr = get_line_re(fdlist);
 	return_buffer(buff, returnstr, buff.c_idx, 'N');
@@ -120,7 +101,7 @@ char	*get_next_line(int fd)
 {
 	static t_fdlist	*fdhead = 0;
 	t_fdlist		*workbench;
-	
+
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (0);
 	if (!fdhead)
@@ -139,19 +120,21 @@ char	*get_next_line(int fd)
 
 int	main(void)
 {
-    int		fd;
+	int		fd;
+	int		i;
 	char	**debugstr;
 
 	fd = open("a.txt", O_RDONLY);
 	debugstr = malloc(sizeof(char *) * 100);
-    int i = 0;
-	while (i < 100)
-	{
-	    printf("%d : |", i);
-	    debugstr[i] = get_next_line(fd);
-	    printf("%s", debugstr[i]);
-	    i++;
-	}
+	i = 0;
+	printf("%p", (void *)malloc(0));
+	// while (i < 100)
+	// {
+	// 	printf("%d : |", i);
+	// 	debugstr[i] = get_next_line(fd);
+	// 	printf("%s", debugstr[i]);
+	// 	i++;
+	// }
 	return (0);
 	//while (printf("%s", get_next_line(fd)) != 6){}
 }

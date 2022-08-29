@@ -6,14 +6,14 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:58:22 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/26 11:20:50 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/29 09:01:22 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
 
-# define BUFFER_SIZE 10
+# define BUFFER_SIZE 3
 
 # include <stdlib.h>
 # include <unistd.h>
@@ -32,7 +32,8 @@ typedef struct s_fdlist
 	struct s_fdlist	*prev;
 }	t_fdlist;
 
-char	*get_next_line(int fd);
-void	*ft_memcpy(void *dst, const void *src, size_t n);
+char		*get_next_line(int fd);
+char		*free_fdlist(t_fdlist *fdlist);
+void		*ft_memcpy(void *dst, const void *src, size_t n);
 
 #endif
