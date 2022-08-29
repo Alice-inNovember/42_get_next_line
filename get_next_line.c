@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/29 11:03:47 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/29 11:31:28 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ char	*line_manager(t_fdlist	*fdlist)
 	if (fdlist->s_idx == -1)
 	{
 		fdlist->status = read(fdlist->fd, fdlist->buffer, BUFFER_SIZE);
-		if (fdlist->status == 0 || fdlist->status == -1)
+		if (fdlist->status <= 0)
 			return (free_fdlist(fdlist));
 		fdlist->s_idx = 0;
 	}
