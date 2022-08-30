@@ -6,7 +6,7 @@
 /*   By: junlee2 <junlee2@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 09:51:24 by junlee2           #+#    #+#             */
-/*   Updated: 2022/08/29 11:31:28 by junlee2          ###   ########seoul.kr  */
+/*   Updated: 2022/08/31 08:37:57 by junlee2          ###   ########seoul.kr  */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ char	*get_line_re(t_fdlist	*fdlist)
 char	*line_manager(t_fdlist	*fdlist)
 {
 	char	*returnstr;
+	ssize_t	totallen;
 
 	fdlist->totallen = 0;
 	if (fdlist->s_idx == -1)
@@ -86,9 +87,10 @@ char	*line_manager(t_fdlist	*fdlist)
 	returnstr = get_line_re(fdlist);
 	if (returnstr == 0)
 		return (free_fdlist(fdlist));
+	totallen = fdlist->totallen;
 	if (fdlist->status == 0)
 		free_fdlist(fdlist);
-	returnstr[fdlist->totallen] = 0;
+	returnstr[totallen] = 0;
 	return (returnstr);
 }
 
