@@ -25,7 +25,9 @@ fd의 허용범위는 운영체제와 시스템설정마다 다르며 음수로�
         2. Hard limit 과 Soft limit 으로 또 나뉘어 있다.
         
         ```
-        Soft limit 는 새로운 프로그램이 생성되면 디폴트로 적용되는 제한 값이고Hard limit 는 Soft limit 부터 늘릴 수 있는 최대 값 이다.Hard limit 는 root 만 조정이 가능하지만 무한히 늘릴 수는 없다
+        Soft limit 는 새로운 프로그램이 생성되면 디폴트로 적용되는 제한 값이고,
+	Hard limit 는 Soft limit 부터 늘릴 수 있는 최대 값 이다.
+	Hard limit 는 root 만 조정이 가능하지만 무한히 늘릴 수는 없다.
         ```
         
     2. **User Level FD Limits 도 있다.**
