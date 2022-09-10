@@ -72,7 +72,6 @@ fd의 허용범위는 운영체제와 시스템설정마다 다르며 음수로�
     {
     	int				fd;
     	char			buffer[BUFFER_SIZE];
-    	char			end_op;
     	ssize_t			totallen;
     	ssize_t			stack;
     	ssize_t			s_idx;

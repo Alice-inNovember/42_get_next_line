@@ -15,12 +15,12 @@
 
 # include <stdlib.h>
 # include <unistd.h>
+# define BUFFER_SIZE 10
 
 typedef struct s_fdlist
 {
 	int				fd;
 	char			buffer[BUFFER_SIZE];
-	char			end_op;
 	ssize_t			totallen;
 	ssize_t			stack;
 	ssize_t			s_idx;
